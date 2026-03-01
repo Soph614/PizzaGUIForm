@@ -157,7 +157,7 @@ public class PizzaGUIFrame extends JFrame {
             clearChoices();
         });
 
-        quitBtn = new JButton("Quit!");
+        quitBtn = new JButton("Quit");
         quitBtn.addActionListener((ActionEvent ae) -> {
             int userOption = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?", "CONFIRM QUIT", JOptionPane.YES_NO_OPTION);
             if (userOption == YES_OPTION) {
@@ -195,13 +195,13 @@ public class PizzaGUIFrame extends JFrame {
 
         // CRUST CHOICE
         if(thinCrustRBtn.isSelected()) {
-            receipt += " Thin Crust\t\t$" + sizeCost + "\n";
+            receipt += " Thin Crust\t$" + sizeCost + "\n";
         }
         else if(regularRBtn.isSelected()) {
-            receipt += " Regular Crust\t\t$" + sizeCost + "\n";
+            receipt += " Regular Crust\t$" + sizeCost + "\n";
         }
         else if(deepDishRBtn.isSelected()) {
-            receipt += " Deep-Dish Crust\t\t$" + sizeCost + "\n";
+            receipt += " Deep-Dish Crust\t$" + sizeCost + "\n";
         }
 
         // TOPPING SELECTIONS
@@ -238,21 +238,22 @@ public class PizzaGUIFrame extends JFrame {
         receipt += "Sub-total:\t\t\t$" + pizzaCost + "\n";
         pizzaTax = pizzaCost * 0.07;
         receipt += "Tax:\t\t\t$" + pizzaTax + "\n";
-        receipt += "-----------------------------------------------------------\n";
+        receipt += "-------------------------------------------------------------\n";
         totalCost = pizzaCost + pizzaTax;
         receipt += "Total:\t\t\t$" + totalCost + "\n";
-        receipt += "======================================\n";
+        receipt += "======================================";
         receiptTA.append(receipt);
     }
 
     private void createReceiptPanel() {
         receiptPnl = new JPanel();
+        receiptPnl.setLayout(new BorderLayout());
         receiptPnl.setBorder(new TitledBorder(new EtchedBorder(),"Receipt"));
         receiptTA = new JTextArea(3, 28);
         receiptTA.setEditable(false);
         receiptTA.setFont(new Font("Times New Roman", Font.PLAIN, 14));
         scrollbar = new JScrollPane(receiptTA);
-        receiptPnl.add(scrollbar);
+        receiptPnl.add(scrollbar, BorderLayout.CENTER);
     }
 
     private void clearChoices() {
@@ -268,5 +269,7 @@ public class PizzaGUIFrame extends JFrame {
         pineappleCB.setSelected(false);
         barbecueSauceCB.setSelected(false);
         mushroomsCB.setSelected(false);
+
+        receiptTA.setText("");
     }
 }
