@@ -4,6 +4,9 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
+import static javax.swing.JOptionPane.NO_OPTION;
+import static javax.swing.JOptionPane.YES_OPTION;
+
 public class PizzaGUIFrame extends JFrame {
     // INITIALIZE PANELS
     JPanel mainPnl;
@@ -11,17 +14,15 @@ public class PizzaGUIFrame extends JFrame {
     JPanel selectToppingsPnl;
     JPanel chooseSizePnl;
     JPanel controlPnl;
+    JPanel receiptPnl;
 
     // INITIALIZE RADIO BUTTONS FOR PIZZA CRUST
-    JRadioButton thinCrustBtn;
-    JRadioButton regularBtn;
+    JRadioButton thinCrustRBtn;
+    JRadioButton regularRBtn;
     JRadioButton deepDishRBtn;
 
     // INITIALIZE JComboBox FOR PIZZA SIZE
     JComboBox sizeOptions;
-    double pizzaCost;
-    double pizzaTax;
-    double totalCost;
 
     // INITIALIZE CHECK BOXES FOR PIZZA TOPPINGS
     JCheckBox pepperoniCB;
@@ -32,12 +33,25 @@ public class PizzaGUIFrame extends JFrame {
     JCheckBox mushroomsCB;
 
     // INITIALIZE QUIT AND DISPLAY CHOICES BUTTON
+    JButton placeOrderBtn;
+    JButton clearChoicesBtn;
     JButton quitBtn;
-    JButton displayChoicesBtn;
+
+    // VARIABLES FOR CALCULATING AND PRINTING RECEIPT
+    JTextArea receiptTA;
+    JScrollPane scrollbar;
+    double sizeCost;
+    double toppingCost;
+    double pizzaCost;
+    double pizzaTax;
+    double totalCost;
+    String receipt;
+
+
 
     public PizzaGUIFrame() {
         mainPnl = new JPanel();
-        mainPnl.setLayout(new GridLayout(4,1));
+        mainPnl.setLayout(new GridLayout(5,1));
 
         createChooseCrustPanel();
         mainPnl.add(chooseCrustPnl);
@@ -48,34 +62,50 @@ public class PizzaGUIFrame extends JFrame {
         createCheckBoxPanel();
         mainPnl.add(selectToppingsPnl);
 
+        createReceiptPanel();
+        mainPnl.add(receiptPnl);
+
         createControlPanel();
         mainPnl.add(controlPnl);
 
         add(mainPnl);
-        setSize(300, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setVisible(true);
+        {
+            // CENTER FRAME IN SCREEN...CODE ADAPTED FROM CAY HORSTMANN
+            Toolkit kit = Toolkit.getDefaultToolkit();
+            Dimension screenSize = kit.getScreenSize();
+            int screenHeight = screenSize.height;
+            int screenWidth = screenSize.width;
+
+            setSize(screenWidth / 5, screenHeight / 2);
+            double twoPointFive = 2.5;
+            setLocation((int) (screenWidth / twoPointFive), screenHeight / 4);
+
+
+            setTitle("Rock, Paper, Scissors, Shoot!");
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setVisible(true);
+        }
     }
 
     private void createChooseCrustPanel() {
         chooseCrustPnl = new JPanel();
-        chooseCrustPnl.setLayout(new GridLayout(1, 4));
+        chooseCrustPnl.setLayout(new GridLayout(3, 1));
         chooseCrustPnl.setBorder(new TitledBorder(new EtchedBorder(),"Crust"));
 
 
-        thinCrustBtn = new JRadioButton("Thin Crust");
-        regularBtn = new JRadioButton("Regular");
+        thinCrustRBtn = new JRadioButton("Thin Crust");
+        regularRBtn = new JRadioButton("Regular");
         deepDishRBtn = new JRadioButton("Deep-Dish");
 
-        chooseCrustPnl.add(thinCrustBtn);
-        chooseCrustPnl.add(regularBtn);
+        chooseCrustPnl.add(thinCrustRBtn);
+        chooseCrustPnl.add(regularRBtn);
         chooseCrustPnl.add(deepDishRBtn);
 
-        regularBtn.setSelected(true);
+        regularRBtn.setSelected(true);
 
         ButtonGroup group = new ButtonGroup();
-        group.add(thinCrustBtn);
-        group.add(regularBtn);
+        group.add(thinCrustRBtn);
+        group.add(regularRBtn);
         group.add(deepDishRBtn);
     }
 
@@ -116,54 +146,127 @@ public class PizzaGUIFrame extends JFrame {
         controlPnl = new JPanel();
         controlPnl.setBorder(new TitledBorder(new EtchedBorder(),"Next Steps"));
 
-        displayChoicesBtn = new JButton("Display Choices");
-        displayChoicesBtn.addActionListener(
+        placeOrderBtn = new JButton("Place Order");
+        placeOrderBtn.addActionListener(
             (ActionEvent ae) -> {
-                // Generate a result string and then display it with a Message Dialog
-                String receipt ="Form Details\n";
-                // get the size choice
-                receipt += "Crust size: ";
-                if(thinCrustBtn.isSelected())
-                    receipt += "Thin Crust\n";
-                else if(regularBtn.isSelected())
-                    receipt += "Regular\n";
-                else if(deepDishRBtn.isSelected())
-                    receipt += "Deep-Dish\n";
-                // get the items
-                receipt += "With these toppings:\n";
-
-                if (pepperoniCB.isSelected())
-                    receipt += "\tPepperoni\n";
-
-                if (sausageCB.isSelected())
-                    receipt += "\tSausage\n";
-
-                if (extraCheeseCB.isSelected())
-                    receipt += "\tExtra Cheese\n";
-
-                if (pineappleCB.isSelected())
-                    receipt += "\tPineapple\n";
-
-                if (barbecueSauceCB.isSelected())
-                    receipt += "\tBarbecue Sauce\n";
-
-                if (mushroomsCB.isSelected())
-                    receipt += "\tMushrooms\n";
-
-                receipt += "To be delivered to: ";
-
-                receipt += (String) sizeOptions.getSelectedItem();
-
-                receipt += "\n";
-                // get the home
-                JOptionPane.showMessageDialog(mainPnl, receipt);
+                calculateCostAndDisplayReceipt();
             });
 
+        clearChoicesBtn = new JButton("Clear Choices");
+        clearChoicesBtn.addActionListener((ActionEvent ae) -> {
+            clearChoices();
+        });
+
         quitBtn = new JButton("Quit!");
-        quitBtn.addActionListener((ActionEvent ae) -> System.exit(0));
+        quitBtn.addActionListener((ActionEvent ae) -> {
+            int userOption = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?", "CONFIRM QUIT", JOptionPane.YES_NO_OPTION);
+            if (userOption == YES_OPTION) {
+                System.exit(0);
+            }
+            if (userOption == NO_OPTION) {
+            }
+        });
 
-        controlPnl.add(displayChoicesBtn);
+        controlPnl.add(placeOrderBtn);
+        controlPnl.add(clearChoicesBtn);
         controlPnl.add(quitBtn);
+    }
 
+    private void calculateCostAndDisplayReceipt() {
+        // Generate a result string and then display it with a Message Dialog
+        receipt = "======================================\n";
+        // SIZE CHOICE
+        if (sizeOptions.getSelectedIndex() == 0) { // small
+            receipt += "Small Pizza, ";
+            sizeCost = 8.0;
+        }
+        else if (sizeOptions.getSelectedIndex() == 1) { // medium
+            receipt += "Medium Pizza, ";
+            sizeCost = 12.0;
+        }
+        else if (sizeOptions.getSelectedIndex() == 2) { // large
+            receipt += "Large Pizza, ";
+            sizeCost = 16.0;
+        }
+        else if (sizeOptions.getSelectedIndex() == 3) { // super
+            receipt += "Super Pizza, ";
+            sizeCost = 20.0;
+        }
+
+        // CRUST CHOICE
+        if(thinCrustRBtn.isSelected()) {
+            receipt += " Thin Crust\t\t$" + sizeCost + "\n";
+        }
+        else if(regularRBtn.isSelected()) {
+            receipt += " Regular Crust\t\t$" + sizeCost + "\n";
+        }
+        else if(deepDishRBtn.isSelected()) {
+            receipt += " Deep-Dish Crust\t\t$" + sizeCost + "\n";
+        }
+
+        // TOPPING SELECTIONS
+        toppingCost = 0.0;
+        if (pepperoniCB.isSelected()) {
+            receipt += "Pepperoni\t\t\t$1.00\n";
+            toppingCost += 1.00;
+        }
+        if (sausageCB.isSelected()) {
+            receipt += "Sausage\t\t\t$1.00\n";
+            toppingCost += 1.00;
+        }
+        if (extraCheeseCB.isSelected()) {
+            receipt += "Extra Cheese\t\t\t$1.00\n";
+            toppingCost += 1.00;
+        }
+        if (pineappleCB.isSelected()) {
+            receipt += "Pineapple\t\t\t$1.00\n";
+            toppingCost += 1.00;
+        }
+        if (barbecueSauceCB.isSelected()) {
+            receipt += "Barbecue Sauce\t\t\t$1.00\n";
+            toppingCost += 1.00;
+        }
+        if (mushroomsCB.isSelected()) {
+            receipt += "Mushrooms\t\t\t$1.00\n";
+            toppingCost += 1.00;
+        }
+
+        pizzaCost = sizeCost + toppingCost;
+
+        receipt += "\n";
+        receipt += "\n";
+        receipt += "Sub-total:\t\t\t$" + pizzaCost + "\n";
+        pizzaTax = pizzaCost * 0.07;
+        receipt += "Tax:\t\t\t$" + pizzaTax + "\n";
+        receipt += "-----------------------------------------------------------\n";
+        totalCost = pizzaCost + pizzaTax;
+        receipt += "Total:\t\t\t$" + totalCost + "\n";
+        receipt += "======================================\n";
+        receiptTA.append(receipt);
+    }
+
+    private void createReceiptPanel() {
+        receiptPnl = new JPanel();
+        receiptPnl.setBorder(new TitledBorder(new EtchedBorder(),"Receipt"));
+        receiptTA = new JTextArea(3, 28);
+        receiptTA.setEditable(false);
+        receiptTA.setFont(new Font("Times New Roman", Font.PLAIN, 14));
+        scrollbar = new JScrollPane(receiptTA);
+        receiptPnl.add(scrollbar);
+    }
+
+    private void clearChoices() {
+        sizeOptions.setSelectedIndex(0);
+
+        thinCrustRBtn.setSelected(false);
+        regularRBtn.setSelected(true);
+        deepDishRBtn.setSelected(false);
+
+        pepperoniCB.setSelected(false);
+        sausageCB.setSelected(false);
+        extraCheeseCB.setSelected(false);
+        pineappleCB.setSelected(false);
+        barbecueSauceCB.setSelected(false);
+        mushroomsCB.setSelected(false);
     }
 }
