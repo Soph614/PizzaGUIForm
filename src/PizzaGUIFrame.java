@@ -92,7 +92,6 @@ public class PizzaGUIFrame extends JFrame {
         chooseCrustPnl.setLayout(new GridLayout(3, 1));
         chooseCrustPnl.setBorder(new TitledBorder(new EtchedBorder(),"Crust"));
 
-
         thinCrustRBtn = new JRadioButton("Thin Crust");
         regularRBtn = new JRadioButton("Regular");
         deepDishRBtn = new JRadioButton("Deep-Dish");
