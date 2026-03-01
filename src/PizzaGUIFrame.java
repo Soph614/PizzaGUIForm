@@ -81,7 +81,7 @@ public class PizzaGUIFrame extends JFrame {
             setLocation((int) (screenWidth / twoPointFive), screenHeight / 4);
 
 
-            setTitle("Rock, Paper, Scissors, Shoot!");
+            setTitle("Customize Your Pizza");
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             setVisible(true);
         }
